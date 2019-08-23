@@ -1,15 +1,14 @@
 package com.luiztaira.sample.music.changelog;
 
-import com.github.javafaker.Faker;
 import com.github.mongobee.changeset.ChangeLog;
 import com.github.mongobee.changeset.ChangeSet;
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.wrapper.spotify.SpotifyApi;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import com.wrapper.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
-import org.bson.Document;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,55 +36,53 @@ public class DatabaseChangelog {
         ClientCredentialsRequest clientCredentialsRequest = spotifyApi.clientCredentials().build();
         String accessToken = clientCredentialsRequest.execute().getAccessToken();
 
-        // request rock tracks
+        // request rock tracks. Spotify search limit allowed is 50
+        for (int j = 0; j < 50; j++) {
+            URL url = new URL("https://api.spotify.com/v1/search?q=rock&type=track&limit=50&offset=" + j + "&popularity=100&market=BR");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestProperty("Authorization", "Bearer " + accessToken);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestMethod("GET");
 
+            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            String output;
+            StringBuffer response = new StringBuffer();
+            while ((output = in.readLine()) != null) {
+                response.append(output);
+            }
+            in.close();
 
-        URL url = new URL("https://api.spotify.com/v1/search?q=rock&type=track&limit=50&offset=0&popularity=100&market=BR");
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestProperty("Authorization", "Bearer " + accessToken);
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestMethod("GET");
+            List<DBObject> musics = new ArrayList<>();
 
-        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        String output;
-        StringBuffer response = new StringBuffer();
-        while ((output = in.readLine()) != null) {
-            response.append(output);
+            // response
+            JSONObject obj = new JSONObject(response.toString());
+            JSONObject tracks = obj.getJSONObject("tracks");
+            JSONArray list = tracks.getJSONArray("items");
+            for (int i = 0; i < list.length(); i++) {
+                JSONObject singleTrack = (JSONObject) list.get(i);
+                DBObject track = new BasicDBObject();
+                track.put("name", singleTrack.get("name"));
+                track.put("artists", singleTrack.getJSONArray("artists").toList());
+                track.put("popularity", singleTrack.get("popularity"));
+                track.put("duration_ms", singleTrack.get("duration_ms"));
+                track.put("spotify_id", singleTrack.get("id"));
+                track.put("spotify_url", singleTrack.getJSONObject("external_urls").get("spotify"));
+
+                JSONObject albumObj = singleTrack.getJSONObject("album");
+                DBObject album = new BasicDBObject();
+                album.put("name", albumObj.get("name"));
+                album.put("spotify_album_id", albumObj.get("id"));
+                album.put("release_date", albumObj.get("release_date"));
+                album.put("total_tracks", albumObj.get("total_tracks"));
+                album.put("artists", albumObj.getJSONArray("artists").toList());
+                album.put("images", albumObj.getJSONArray("images").toList());
+                track.put("album", album);
+
+                musics.add(track);
+            }
+
+            // insert in mongodb
+            discCollection.insert(musics);
         }
-        in.close();
-
-        List<Document> musics = new ArrayList<>();
-
-        // response
-        JSONObject obj = new JSONObject(response.toString());
-        JSONObject tracks = obj.getJSONObject("tracks");
-        JSONArray list = tracks.getJSONArray("items");
-        while (list.iterator().hasNext()) {
-            JSONObject singleTrack = (JSONObject) list.iterator().next();
-            Document track = new Document();
-            track.append("name", singleTrack.get("name"));
-            track.append("artists", singleTrack.getJSONArray("artists").toList());
-
-            JSONObject albumObj = singleTrack.getJSONObject("album");
-            Document album = new Document();
-            album.put("name", albumObj.get("name"));
-            album.put("spotify_album_id", albumObj.get("id"));
-            album.put("release_date", albumObj.get("release_date"));
-            album.put("total_tracks", albumObj.get("total_tracks"));
-            album.put("artists", albumObj.getJSONArray("artists").toList());
-            album.put("images", albumObj.getJSONArray("images").toList());
-            track.append("album", album);
-
-            track.append("popularity", singleTrack.get("popularity"));
-            track.append("duration_ms", singleTrack.get("duration_ms"));
-            track.append("spotify_id", singleTrack.get("id"));
-            track.append("spotify", singleTrack.getJSONObject("external_urls").get("spotify"));
-
-            musics.add(track);
-        }
-
-        // insert in mongodb
-        discCollection.insert(musics);
-
     }
 }

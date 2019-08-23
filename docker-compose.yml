@@ -1,0 +1,25 @@
+version: '3.1'
+
+services:
+  music-rest-api:
+    build: .
+    image: iquee/music-rest-api:latest
+    container_name: music-rest-api
+    ports:
+      - 8080:8080
+    working_dir: /opt/app
+    networks:
+      - music
+    depends_on:
+      - mongo
+  
+  mongo:
+    image: mongo
+    container_name: mongo
+    networks:
+      - music
+    ports:  
+      - 27017:27017
+    
+networks:
+  music:

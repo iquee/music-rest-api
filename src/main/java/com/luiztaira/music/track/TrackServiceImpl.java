@@ -1,21 +1,25 @@
-package com.luiztaira.sample.music.service.impl;
+package com.luiztaira.music.track;
 
-import java.util.List;
 import java.util.Optional;
 
-import com.luiztaira.sample.music.service.TrackService;
+import com.luiztaira.music.RabbitAmqpRunner;
+import com.luiztaira.music.track.Track;
+import com.luiztaira.music.track.TrackService;
+import com.luiztaira.music.utils.exceptions.ResourceNotFoundException;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Component;
 
-import com.luiztaira.sample.music.domain.Track;
-import com.luiztaira.sample.music.exception.TrackException;
-import com.luiztaira.sample.music.repository.TrackRepository;
+import com.luiztaira.music.track.TrackRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-@Component
+@Log4j2
+@Service
 public class TrackServiceImpl implements TrackService {
 
 	@Autowired
@@ -23,12 +27,16 @@ public class TrackServiceImpl implements TrackService {
 
 	@Override
 	public String create(Track track) {
-		return null;
+		return repository.save(track).getId();
 	}
 
 	@Override
+	@Transactional
 	public Track get(String id) {
-		return null;
+		Optional<Track> optional = repository.findById(id);
+		if(optional.isPresent())
+			return optional.get();
+		throw new ResourceNotFoundException("No track found for id: " + id);
 	}
 
 	@Override
@@ -47,6 +55,13 @@ public class TrackServiceImpl implements TrackService {
 	@Override
 	public Page<Track> findByNameOrArtist(String pattern, int page, int size, String orderBy) {
 		return null;
+	}
+
+	@Override
+	@RabbitListener(queues = {RabbitAmqpRunner.FANOUT_QUEUE_TRACKS})
+	public void receiveMessageFromQueue(Track track) {
+		log.info("Track pop from queue: " + track);
+		create(track);
 	}
 
 	private Pageable createPageRequest(int page, int size, String orderBy) {

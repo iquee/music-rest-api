@@ -1,13 +1,6 @@
-package com.luiztaira.sample.music.repository;
+package com.luiztaira.music.track;
 
-import java.util.List;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
-
-import com.luiztaira.sample.music.domain.Track;
 
 /**
  * Repository for Disc documents. Sample services are extended from {@link MongoRepository}

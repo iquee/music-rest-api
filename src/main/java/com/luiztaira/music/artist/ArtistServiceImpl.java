@@ -34,24 +34,6 @@ public class ArtistServiceImpl implements ArtistService{
     }
 
     @Override
-    public void delete(String id) {
-    }
-
-    @Override
-    public void update(Artist track) {
-    }
-
-    @Override
-    public Page<Artist> list(int page, int size, String orderBy) {
-        return null;
-    }
-
-    @Override
-    public Page<Artist> findByNameOrArtist(String pattern, int page, int size, String orderBy) {
-        return null;
-    }
-
-    @Override
     @RabbitListener(queues = {RabbitAmqpRunner.FANOUT_QUEUE_ARTISTS})
     public void receiveMessageFromQueue(Artist artist) {
         log.info("Artist pop from queue: " + artist);

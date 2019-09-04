@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/tracks")
+@RequestMapping("/api/tracks")
 public class TrackController{
 
 	@Autowired

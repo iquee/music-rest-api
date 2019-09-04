@@ -40,31 +40,9 @@ public class TrackServiceImpl implements TrackService {
 	}
 
 	@Override
-	public void delete(String id) {
-	}
-
-	@Override
-	public void update(Track track) {
-	}
-
-	@Override
-	public Page<Track> list(int page, int size, String orderBy) {
-		return null;
-	}
-
-	@Override
-	public Page<Track> findByNameOrArtist(String pattern, int page, int size, String orderBy) {
-		return null;
-	}
-
-	@Override
 	@RabbitListener(queues = {RabbitAmqpRunner.FANOUT_QUEUE_TRACKS})
 	public void receiveMessageFromQueue(Track track) {
 		log.info("Track pop from queue: " + track);
 		create(track);
-	}
-
-	private Pageable createPageRequest(int page, int size, String orderBy) {
-		return PageRequest.of(page, size, Sort.by(((orderBy == null || orderBy == "") ? "id" : orderBy)));
 	}
 }

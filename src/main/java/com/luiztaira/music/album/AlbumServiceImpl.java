@@ -33,24 +33,6 @@ public class AlbumServiceImpl implements AlbumService {
     }
 
     @Override
-    public void delete(String id) {
-    }
-
-    @Override
-    public void update(Album track) {
-    }
-
-    @Override
-    public Page<Album> list(int page, int size, String orderBy) {
-        return null;
-    }
-
-    @Override
-    public Page<Album> findByNameOrArtist(String pattern, int page, int size, String orderBy) {
-        return null;
-    }
-
-    @Override
     @RabbitListener(queues = {RabbitAmqpRunner.FANOUT_QUEUE_ALBUMS})
     public void receiveMessageFromQueue(Album album) {
         log.info("Album pop from queue: " + album);

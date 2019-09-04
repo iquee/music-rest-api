@@ -57,7 +57,7 @@ public class SpotifyLoadData implements CommandLineRunner {
             String accessToken = clientCredentialsRequest.execute().getAccessToken();
 
             // request rock tracks. Spotify search limit allowed is 50
-            log.info("Spotify API Request: Search most popular Rock artists in Brazil");
+            log.info("Spotify API Request: Search most popular Rock musics in Brazil");
             URL url = new URL("https://api.spotify.com/v1/search?q=genre:rock&type=track&limit=50&offset=0&popularity=100&market=BR");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestProperty("Authorization", "Bearer " + accessToken);

@@ -2,7 +2,9 @@ version: '3.1'
 
 services:
   music-rest-api:
-    build: .
+    build:
+      context: ./
+      dockerfile: Dockerfile
     image: iquee/music-rest-api:latest
     container_name: music-rest-api
     ports:
@@ -12,17 +14,19 @@ services:
       - music
     depends_on:
       - mongo
-  
+      - rabbitmq
+
   mongo:
     image: mongo
     container_name: mongo
     networks:
       - music
-    ports:  
+    ports:
       - 27017:27017
 
   rabbitmq:
     image: rabbitmq:management
+    container_name: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
